@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "net.superkat.explosiveenhancement.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "target": "@env(DEFAULT)",
+  "client": [],
+  "mixins": [
+    "ExplosionMixin"
+  ],
+  "server": [],
+  "setSourceFile": true,
+  "minVersion": "0.8.7"
+}

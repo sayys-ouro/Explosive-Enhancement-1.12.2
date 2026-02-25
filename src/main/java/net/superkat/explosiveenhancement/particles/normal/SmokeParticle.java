@@ -1,65 +1,58 @@
 package net.superkat.explosiveenhancement.particles.normal;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleFactory;
-import net.minecraft.client.particle.SpriteProvider;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.random.Random;
-import net.superkat.explosiveenhancement.particles.AbstractExplosiveParticle;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import net.superkat.explosiveenhancement.registry.ParticleTextureRegistry;
 
-@Environment(EnvType.CLIENT)
-public class SmokeParticle extends AbstractExplosiveParticle {
+@SideOnly(Side.CLIENT)
+public class SmokeParticle extends Particle {
+    public SmokeParticle(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double velX, double velY,
+                         double velZ, double power) {
+        super(worldIn, xCoordIn, yCoordIn, zCoordIn);
 
-    public SmokeParticle(ClientWorld world, double x, double y, double z, double velX, double velY, double velZ, SmokeParticleEffect params, SpriteProvider spriteProvider) {
-        super(world, x, y, z, velX, velY, velZ, params.getScale() * 0.25f, params.isEmissive(), spriteProvider);
-        this.maxAge = (int) (this.random.nextInt(35) + params.getScale() * this.random.nextBetween(3, 22));
-        this.collidesWithWorld = true;
-    }
+        this.particleScale = (float) power * 1.75f
+                * (float) net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.smokeScale;
 
-    public void tick() {
-        this.lastX = this.x;
-        this.lastY = this.y;
-        this.lastZ = this.z;
-        if (this.age++ >= this.maxAge) {
-            this.markDead();
-            return;
-        }
+        this.particleMaxAge = (int) (this.rand.nextInt(35) + power * (this.rand.nextInt(20) + 3));
+        this.particleMaxAge = Math.max(1, (int) (this.particleMaxAge
+                / net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.smokeSpeed));
 
-        if (this.age == 12) {
-            this.velocityX = 0;
-            this.velocityY = 0.05;
-            this.velocityZ = 0;
-        }
-        this.move(this.velocityX, this.velocityY, this.velocityZ);
-        this.updateSprite(this.spriteProvider);
+        this.motionX = velX;
+        this.motionY = velY;
+        this.motionZ = velZ;
+
+        this.setParticleTexture(ParticleTextureRegistry.SMOKE_SPRITES[0]);
     }
 
     @Override
-    protected int getBrightness(float tint) {
-        BlockPos blockPos = BlockPos.ofFloored(this.x, this.y, this.z);
-        int normalBrightness = this.world.isChunkLoaded(blockPos) ? WorldRenderer.getLightmapCoordinates(this.world, blockPos) : 0;
-        if(this.emissive) {
-            if(this.age <= this.maxAge * 0.12) {
-                return 15728880; // full emissive
-            } else if(this.age <= maxAge * 0.17) {
-                // fade out emissive based on age and max age
-                return MathHelper.clamp(normalBrightness + this.age + 30, normalBrightness, 15728880);
+    public void onUpdate() {
+        this.prevPosX = this.posX;
+        this.prevPosY = this.posY;
+        this.prevPosZ = this.posZ;
+
+        if (this.particleAge++ >= this.particleMaxAge) {
+            this.setExpired();
+        } else {
+            if (this.particleAge == 12) {
+                this.motionX = 0;
+                this.motionY = 0.05D;
+                this.motionZ = 0;
             }
+            this.move(this.motionX, this.motionY, this.motionZ);
+
+            int frame = (int) (((float) this.particleAge / this.particleMaxAge)
+                    * ParticleTextureRegistry.SMOKE_SPRITES.length);
+            if (frame >= ParticleTextureRegistry.SMOKE_SPRITES.length) {
+                frame = ParticleTextureRegistry.SMOKE_SPRITES.length - 1;
+            }
+            this.setParticleTexture(ParticleTextureRegistry.SMOKE_SPRITES[frame]);
         }
-        return normalBrightness;
     }
 
-    @Environment(EnvType.CLIENT)
-    public record Factory(SpriteProvider sprites) implements ParticleFactory<SmokeParticleEffect> {
-        @Override
-        public @NotNull Particle createParticle(SmokeParticleEffect parameters, ClientWorld world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Random random) {
-            return new SmokeParticle(world, x, y, z, velocityX, velocityY, velocityZ, parameters, sprites);
-        }
+    @Override
+    public int getFXLayer() {
+        return 1;
     }
 }

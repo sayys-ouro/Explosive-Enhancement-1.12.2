@@ -1,55 +1,94 @@
 package net.superkat.explosiveenhancement.particles.normal;
 
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.particle.BillboardParticleSubmittable;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleFactory;
-import net.minecraft.client.particle.SpriteProvider;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.math.random.Random;
-import net.superkat.explosiveenhancement.particles.AbstractExplosiveParticle;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Quaternionf;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.entity.Entity;
+import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+import net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig;
+import net.superkat.explosiveenhancement.registry.ParticleTextureRegistry;
 
-@Environment(EnvType.CLIENT)
-public class BlastWaveParticle extends AbstractExplosiveParticle {
-    // cache here for the ever-so-smallest amount of performance increase
-    private static final float HUNDRED_EIGHTY_DEGREES = (float) Math.toRadians(180f);
-    private static final float NINETY_DEGREES = (float) Math.toRadians(90);
+@SideOnly(Side.CLIENT)
+public class BlastWaveParticle extends Particle {
+    private final double initialScale;
 
     public BlastWaveParticle(
-            ClientWorld world,
+            World world,
             double x, double y, double z,
-            double velX, double velY, double velZ,
-            BlastWaveParticleEffect params,
-            SpriteProvider spriteProvider
+            double velX, double velY, double velZ
     ) {
-        super(world, x, y, z, velX, velY, velZ, params.getScale(), params.isEmissive(), spriteProvider);
-        this.maxAge = (int) (15 + (Math.floor(this.scale / 5)));
+        super(world, x, y + 0.5D, z);
+
+        this.motionX = 0;
+        this.motionY = 0;
+        this.motionZ = 0;
+
+        this.particleScale = (float) velX * (float) ExplosiveEnhancementConfig.blastWaveScale;
+        this.initialScale = this.particleScale;
+        this.particleMaxAge = Math.max(1, (int) ((15 + (Math.floor(velX / 5))) / ExplosiveEnhancementConfig.blastWaveSpeed));
+        this.particleAlpha = 1.0F;
+
+        this.setParticleTexture(ParticleTextureRegistry.BLASTWAVE_SPRITES[0]);
     }
 
     @Override
-    public void render(BillboardParticleSubmittable submittable, Camera camera, float tickProgress) {
-        Quaternionf quaternionf = new Quaternionf();
-        quaternionf.rotationX(NINETY_DEGREES); // rotate 90 degrees to be horizontal
-        this.render(submittable, camera, quaternionf, tickProgress);
-        quaternionf.rotateYXZ(HUNDRED_EIGHTY_DEGREES, 0, 0); // flip upside down to be seen from beneath
-        this.render(submittable, camera, quaternionf, tickProgress);
+    public int getFXLayer() {
+        return 1;
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        this.updateSprite(this.spriteProvider);
-    }
+    public void onUpdate() {
+        this.prevPosX = this.posX;
+        this.prevPosY = this.posY;
+        this.prevPosZ = this.posZ;
 
-    @Environment(EnvType.CLIENT)
-    public record Factory(SpriteProvider sprites) implements ParticleFactory<BlastWaveParticleEffect> {
-        @Override
-        public @NotNull Particle createParticle(BlastWaveParticleEffect parameters, ClientWorld world, double x, double y, double z, double velocityX, double velocityY, double velocityZ, Random random) {
-            return new BlastWaveParticle(world, x, y, z, velocityX, velocityY, velocityZ, parameters, this.sprites);
+        if (this.particleAge++ >= this.particleMaxAge) {
+            this.setExpired();
+        } else {
+            int frame = (int) (((float) this.particleAge / this.particleMaxAge) * ParticleTextureRegistry.BLASTWAVE_SPRITES.length);
+
+            if (frame >= ParticleTextureRegistry.BLASTWAVE_SPRITES.length) {
+                frame = ParticleTextureRegistry.BLASTWAVE_SPRITES.length - 1;
+            }
+
+            this.setParticleTexture(ParticleTextureRegistry.BLASTWAVE_SPRITES[frame]);
         }
+    }
+
+    @Override
+    public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
+        float f4 = this.particleScale;
+
+        float f = (float) (this.prevPosX + (this.posX - this.prevPosX) * (double) partialTicks - interpPosX);
+        float f1 = (float) (this.prevPosY + (this.posY - this.prevPosY) * (double) partialTicks - interpPosY);
+        float f2 = (float) (this.prevPosZ + (this.posZ - this.prevPosZ) * (double) partialTicks - interpPosZ);
+
+        float u1 = this.particleTexture.getMinU();
+        float u2 = this.particleTexture.getMaxU();
+
+        float v1 = this.particleTexture.getMinV();
+        float v2 = this.particleTexture.getMaxV();
+
+        int i = this.getBrightnessForRender(partialTicks);
+        int j = i >> 16 & 65535;
+        int k = i & 65535;
+
+        buffer.pos((double) f - f4, (double) f1, (double) f2 - f4).tex((double) u2, (double) v2)
+                .color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha)
+                .lightmap(j, k)
+                .endVertex();
+        buffer.pos((double) f - f4, (double) f1, (double) f2 + f4).tex((double) u2, (double) v1)
+                .color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha)
+                .lightmap(j, k)
+                .endVertex();
+        buffer.pos((double) f + f4, (double) f1, (double) f2 + f4).tex((double) u1, (double) v1)
+                .color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha)
+                .lightmap(j, k)
+                .endVertex();
+        buffer.pos((double) f + f4, (double) f1, (double) f2 - f4).tex((double) u1, (double) v2)
+                .color(this.particleRed, this.particleGreen, this.particleBlue, this.particleAlpha)
+                .lightmap(j, k)
+                .endVertex();
     }
 }
