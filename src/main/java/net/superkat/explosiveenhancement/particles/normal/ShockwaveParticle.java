@@ -15,7 +15,7 @@ public class ShockwaveParticle extends Particle {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn);
         this.particleMaxAge = Math.max(1, (int) ((9 + Math.floor(velX / 5))
                 / net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.shockwaveSpeed));
-        this.particleScale = (float) velX * 10.0F;
+        this.particleScale = (float) velX * 10.0F * (float) net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.shockwaveScale;
         this.motionX = 0;
         this.motionY = 0;
         this.motionZ = 0;

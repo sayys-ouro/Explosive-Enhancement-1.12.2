@@ -11,13 +11,12 @@ import net.superkat.explosiveenhancement.registry.ParticleTextureRegistry;
 public class FireballParticle extends Particle {
     private final boolean important;
 
-    public FireballParticle(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double velX, double velY,
-                            double velZ) {
+    public FireballParticle(World worldIn, double xCoordIn, double yCoordIn, double zCoordIn, double velX, double velY, double velZ) {
         super(worldIn, xCoordIn, yCoordIn, zCoordIn);
         this.particleMaxAge = Math.max(1, (int) ((9 + Math.floor(velX / 5))
                 / net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.fireballSpeed));
-        this.particleScale = (float) velX * 10.0f;
-        this.important = velY == 1; // Used to emulate the 'isImportant' logic from 1.21.1 if needed
+        this.particleScale = (float) velX * 10.0f * (float) net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.fireballScale;
+        this.important = velY == 1;
         this.motionX = 0;
         this.motionY = 0;
         this.motionZ = 0;

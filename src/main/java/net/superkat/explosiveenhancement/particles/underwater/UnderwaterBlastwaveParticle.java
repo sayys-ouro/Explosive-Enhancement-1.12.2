@@ -16,7 +16,7 @@ public class UnderwaterBlastwaveParticle extends Particle {
         this.motionX = 0;
         this.motionY = 0;
         this.motionZ = 0;
-        this.particleScale = (float) velX;
+        this.particleScale = (float) velX * (float) net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.underwaterBlastWaveScale;
         this.particleMaxAge = Math.max(1, (int) ((15 + (Math.floor(velX / 5)))
                 / net.superkat.explosiveenhancement.config.ExplosiveEnhancementConfig.underwaterBlastWaveSpeed));
         this.particleAlpha = 1.0F;
