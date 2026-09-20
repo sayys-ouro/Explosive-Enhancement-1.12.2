@@ -1,0 +1,15 @@
+{
+  "client": [
+    "ExplosionMixin",
+    "mod.oe.OEExplosionUnderwaterMixin"
+  ],
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8.7",
+  "mixins": [],
+  "package": "net.superkat.explosiveenhancement.mixin",
+  "plugin": "net.superkat.explosiveenhancement.ModMixinConfigPlugin",
+  "required": true,
+  "server": [],
+  "setSourceFile": true,
+  "target": "@env(DEFAULT)"
+}

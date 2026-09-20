@@ -1,0 +1,4 @@
+"$schema" = "https://stonecutter.kikugie.dev/settings-schema/latest.json"
+
+[versions]
+"1.12.2" = ["cleanroom", "forge"]

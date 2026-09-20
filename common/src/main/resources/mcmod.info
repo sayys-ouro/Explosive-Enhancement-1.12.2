@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "explosiveenhancement",
+    "name": "Explosive Enhancement 1.12.2",
+    "version": "1.1.0",
+    "mcversion": "1.12.2",
+    "description": "Makes the explosion animation look cooler.",
+    "authorList": ["__sayys", "Superkat32"],
+    "credits": "Superkat32",
+    "url": "https://github.com/sayys-ouro/Explosive-Enhancement-1.12.2",
+    "updateJSON": "",
+    "logoFile": "assets/explosiveenhancement/icon.png",
+    "modProperties": {
+      "issueTrackerUrl": ""
+    }
+  }
+]
